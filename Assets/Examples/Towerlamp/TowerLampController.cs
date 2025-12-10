@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
-using DG.Tweening;
 
-public class TowerLampController : MonoBehaviour, IPointerClickHandler
+public class TowerLampController : MonoBehaviour
 {
     //각 램프의 게임오브젝트이름
     [Header("램프 이름")]    
@@ -10,111 +8,107 @@ public class TowerLampController : MonoBehaviour, IPointerClickHandler
     public string yellowLampName;
     public string greenLampName;
     //각 램프의 메쉬렌더러 
-    private MeshRenderer redLamp;
-    private MeshRenderer yellowLamp;
-    private MeshRenderer greenLamp;
+    public MeshRenderer redLamp;
+    public MeshRenderer yellowLamp;
+    public MeshRenderer greenLamp;
 
-    [Header("Control UI")]    
-    public bool useUIButton = false;             //UI를 사용할 거냐
-    public bool needUpdateUIPosition;          //UI 위치 업데이트할 필요가 있냐
-    public RectTransform controlUI;              //사용할 UI
-    public Transform uiCenter;                     //UI 표시 위치 정보
-    public float duration = 0.5f;                   //등장 애니메이션 길이
-    public Ease easingType = Ease.OutBounce;    //애니메이션 타입
+    private bool _isOnRed = false;
+    private bool _isOnYellow = false;
+    private bool _isOnGreen = false;
 
-    private bool _isUIDisplayed = false;        //현재 UI가 표시되고 있는지
+    //프로퍼티는 함수를 변수처럼 사용하고 정보의 은닉성을 지킬 수 있음.
+    public bool IsOnRed
+    {
+        get => _isOnRed;
+        set
+        {
+            if (_isOnRed == value)
+                return;
+
+            _isOnRed = value;
+            //메터리얼.EnableKeyward("_EMISSION") 함수로 발광 효과 켜짐.
+            //메터리얼.DisableKeyward("_EMISSION") 함수로 발광 효과 제거.
+            if (value)
+                redLamp.materials[0].EnableKeyword("_EMISSION");
+            else
+                redLamp.materials[0].DisableKeyword("_EMISSION");
+        }
+    }
+
+    public bool IsOnYellow
+    {
+        get => _isOnYellow;
+        set
+        {
+            if (_isOnYellow== value)
+                return;
+
+            _isOnYellow = value;
+            if (value)
+                yellowLamp.materials[0].EnableKeyword("_EMISSION");
+            else
+                yellowLamp.materials[0].DisableKeyword("_EMISSION");
+        }
+    }
+
+    public bool IsOnGreen
+    {
+        get => _isOnGreen;
+        set
+        {
+            if (_isOnGreen == value)
+                return;
+
+            _isOnGreen = value;
+            if (value)
+                greenLamp.materials[0].EnableKeyword("_EMISSION");
+            else
+                greenLamp.materials[0].DisableKeyword("_EMISSION");
+        }
+    }
 
     private void Start()
     {
-        //transform.Find("자식의 이름") 자식 게임오브젝트 중에서 이름이 같은 게임오브젝트 하나를 리턴한다.        
-        uiCenter = transform.Find("UICenter");
-
+        GameObject go = null;
         //GameObject.Find("이름") 씬안에 존재하는 활성화 되어 있는 게임오브젝트 중에서 해당 이름을 가진 
         //게임오브젝트를 찾아 반환한다.
-        greenLamp = GameObject.Find(greenLampName).GetComponent<MeshRenderer>();
-        yellowLamp = GameObject.Find(yellowLampName).GetComponent<MeshRenderer>();
-        redLamp = GameObject.Find(redLampName).GetComponent<MeshRenderer>();
-        //GetComponentInChildren<구성요소>() 직계 자손 게임오브젝트안에 있는 구성요소를 가져온다.
-        //()안에 true를 넣으면 비활성화 된 구성요소도 가져올 수 있다.
-        controlUI = GetComponentInChildren<RectTransform>(true);
+        if (redLamp == null)
+        {
+            go = GameObject.Find(redLampName);
+            if(go != null)
+            {
+                //gameObject.GetComponent<구성요소>() 게임오브젝트에 어태치되어 있는 해당 구성요소를 찾아서 
+                //있으면 찾은 구성요소를 반환, 없으면 null 반환
+                redLamp = go.GetComponent<MeshRenderer>();
 
-        TurnOnRedLamp(false);
-        TurnOnYellowLamp(false);
-        TurnOnGreenLamp(false);
-    }
+                //material.IsKeywordEnabled("키워드")  해당 키워드가 활성화되어 있는지 확인해 활성화되어 있으면 true, 아니면 false 반환
+                _isOnRed = redLamp.materials[0].IsKeywordEnabled("_EMISSION");
+            }
+        }
 
-    private void Update()
-    {
-        if (!useUIButton || !_isUIDisplayed || !needUpdateUIPosition || controlUI == null)
-            return;
+        if (yellowLamp == null)
+        {
+            go = GameObject.Find(yellowLampName);
+            if (go != null)
+            {
+                yellowLamp = go.GetComponent<MeshRenderer>();
+                _isOnYellow = yellowLamp.materials[0].IsKeywordEnabled("_EMISSION");
+            }
+        }
 
-        controlUI.position = Camera.main.WorldToScreenPoint(uiCenter.position);
-    }
+        if (greenLamp == null)
+        {
+            go = GameObject.Find(greenLampName);
+            if (go != null)
+            {
+                greenLamp = go.GetComponent<MeshRenderer>();
+                _isOnGreen = greenLamp.materials[0].IsKeywordEnabled("_EMISSION");
+            }
+        }
 
-    public void TurnOnRedLamp(bool isOn)
-    {
-        //메터리얼.EnableKeyward("_EMISSION") 함수로 발광 효과 켜짐.
-        //메터리얼.DisableKeyward("_EMISSION") 함수로 발광 효과 제거.
-        if (isOn)
-            redLamp.materials[0].EnableKeyword("_EMISSION");
-        else
-            redLamp.materials[0].DisableKeyword("_EMISSION");
-    }
-
-    public void TurnOnYellowLamp(bool isOn)
-    {
-        if (isOn)
-            yellowLamp.materials[0].EnableKeyword("_EMISSION");
-        else
-            yellowLamp.materials[0].DisableKeyword("_EMISSION");
-    }
-
-    public void TurnOnGreenLamp(bool isOn)
-    {
-        if (isOn)
-            greenLamp.materials[0].EnableKeyword("_EMISSION");
-        else
-            greenLamp.materials[0].DisableKeyword("_EMISSION");
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (!useUIButton)
-            return;
-
-        if (_isUIDisplayed)
-            return;
-
-        if (controlUI == null)
-            return;
-
-        _isUIDisplayed = true;
-        //transform.SetParent(부모가 될 게임오브젝트의 트랜스폼) 해당 트랜스폼의 부모를 결정할 수 있다.
-        //null로 넣으면 부모가 없는 상태로 만들수 있다.
-        controlUI.SetParent(GameObject.Find("Canvas").transform);
-
-        //Camera.main.WorldToScreenPoint(씬 내 게임오브젝트 좌표)로 UI 스크린에 해당하는 좌표를 얻을 수 있다.
-        controlUI.position = Camera.main.WorldToScreenPoint(uiCenter.position);
-
-        //gameObject.SetActive(온오프) 해당 게임오브젝트의 활성/비활성 변경함수
-        controlUI.gameObject.SetActive(true);
-        
-        //등장 애니메이션
-        controlUI.DOScale(Vector3.one, duration)
-            .SetEase(easingType);
-    }
-
-    public void CloseUI()
-    {
-        //퇴장 애니메이션
-        controlUI.DOScale(Vector3.zero, duration)
-            .SetEase(easingType)
-            .OnComplete(CompleteOffUI);
-    }
-
-    private void CompleteOffUI()
-    {
-        controlUI.gameObject.SetActive(false);
-        _isUIDisplayed = false;
+        //프로퍼티는 함수를 변수처럼 사용하고 정보의 은닉성을 지킬 수 있음.
+        IsOnRed = false;
+        IsOnYellow = false;
+        IsOnGreen = false;
     }
 }
