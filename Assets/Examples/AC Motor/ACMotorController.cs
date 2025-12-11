@@ -2,30 +2,30 @@ using UnityEngine;
 
 public class ACMotorController : MonoBehaviour
 {
-    //È¸Àü »şÇÁÆ®ÀÇ ¸®Áöµå¹Ùµğ
+    //íšŒì „ ìƒ¤í”„íŠ¸ì˜ ë¦¬ì§€ë“œë°”ë””
     public Rigidbody shaft;
-    //È¸Àü Ãà
+    //íšŒì „ ì¶•
     public Vector3 torqueAxis = Vector3.forward;
 
-    //ÃÊ´ç ÃÖ´ë È¸Àü ¼Óµµ
+    //ì´ˆë‹¹ ìµœëŒ€ íšŒì „ ì†ë„
     public float maxVelocity = 60f;
-    //ÃÊ´ç ÅäÅ©
+    //ì´ˆë‹¹ í† í¬
     public float torque = 1f;
 
-    //Á¤¹æÇâ È¸Àü¿¡ Àü·ù°¡ Èå¸£³Ä
+    //ì •ë°©í–¥ íšŒì „ì— ì „ë¥˜ê°€ íë¥´ëƒ
     private bool _isOnForward = false;
-    //¿ª¹æÇâ È¸Àü¿¡ Àü·ù°¡ Èå¸£³Ä
+    //ì—­ë°©í–¥ íšŒì „ì— ì „ë¥˜ê°€ íë¥´ëƒ
     private bool _isOnBackward = false;
-    //È¸Àü ¹æÇâ
+    //íšŒì „ ë°©í–¥
     private float _torqueDirection = 0f;
 
     private void Start()
     {
-        //GetComponentInChildren<±¸¼º¿ä¼Ò>() ÀÚ½Äµé Áß¿¡¼­ ÁöÁ¤ÇÑ ±¸¼º¿ä¼Ò Å¸ÀÔÀ» Ã£¾Æ
-        //ÀÖÀ¸¸é °¡Á®¿À°í, ¾øÀ¸¸é null ¹İÈ¯
-        //Á÷°è ÀÚ¼ÕÀÌ¿©¾ß ÇÔ.
+        //GetComponentInChildren<êµ¬ì„±ìš”ì†Œ>() ìì‹ë“¤ ì¤‘ì—ì„œ ì§€ì •í•œ êµ¬ì„±ìš”ì†Œ íƒ€ì…ì„ ì°¾ì•„
+        //ìˆìœ¼ë©´ ê°€ì ¸ì˜¤ê³ , ì—†ìœ¼ë©´ null ë°˜í™˜
+        //ì§ê³„ ìì†ì´ì—¬ì•¼ í•¨.
         shaft = GetComponentInChildren<Rigidbody>();
-        //ÃÖ´ë È¸Àü ¼Óµµ Á¦ÇÑ
+        //ìµœëŒ€ íšŒì „ ì†ë„ ì œí•œ
         shaft.maxAngularVelocity = maxVelocity;
 
         IsOnForward = false;
@@ -34,7 +34,7 @@ public class ACMotorController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        //rigidbody.AddRelativeTorque(Vector3) ·ÎÄÃ ÃàÀÇ È¸Àü¹æÇâÀ¸·Î ÅäÅ©¸¦ ¹ß»ı½ÃÅ²´Ù.
+        //rigidbody.AddRelativeTorque(Vector3) ë¡œì»¬ ì¶•ì˜ íšŒì „ë°©í–¥ìœ¼ë¡œ í† í¬ë¥¼ ë°œìƒì‹œí‚¨ë‹¤.
         shaft.AddRelativeTorque(_torqueDirection * torque * Time.fixedDeltaTime * torqueAxis);
     }
 
@@ -47,11 +47,11 @@ public class ACMotorController : MonoBehaviour
             if (_isOnForward == value)
                 return;
 
-            //Á¤¹æÇâ È¸ÀüÀÌ OnµÇ¸é ¿ª¹æÇâ È¸ÀüÀÇ Àü·ù¸¦ Off½ÃÅ²´Ù.
+            //ì •ë°©í–¥ íšŒì „ì´ Onë˜ë©´ ì—­ë°©í–¥ íšŒì „ì˜ ì „ë¥˜ë¥¼ Offì‹œí‚¨ë‹¤.
             if (_isOnForward = value)
                 _isOnBackward = false;
 
-            //ÇöÀç Àü·ù Èå¸§À» È®ÀÎÇØ È¸Àü¹æÇâÀ» Á¤ÇÑ´Ù.
+            //í˜„ì¬ ì „ë¥˜ íë¦„ì„ í™•ì¸í•´ íšŒì „ë°©í–¥ì„ ì •í•œë‹¤.
             if (_isOnForward)
                 _torqueDirection = -1f;
             else if (_isOnBackward)
@@ -69,11 +69,11 @@ public class ACMotorController : MonoBehaviour
             if (_isOnBackward == value)
                 return;
 
-            //¿ª¹æÇâ È¸ÀüÀÌ OnµÇ¸é Á¤¹æÇâ È¸ÀüÀÇ Àü·ù¸¦ Off½ÃÅ²´Ù.
+            //ì—­ë°©í–¥ íšŒì „ì´ Onë˜ë©´ ì •ë°©í–¥ íšŒì „ì˜ ì „ë¥˜ë¥¼ Offì‹œí‚¨ë‹¤.
             if (_isOnBackward = value)
                 _isOnForward = false;
 
-            //ÇöÀç Àü·ù Èå¸§À» È®ÀÎÇØ È¸Àü¹æÇâÀ» Á¤ÇÑ´Ù.
+            //í˜„ì¬ ì „ë¥˜ íë¦„ì„ í™•ì¸í•´ íšŒì „ë°©í–¥ì„ ì •í•œë‹¤.
             if (_isOnForward)
                 _torqueDirection = -1f;
             else if (_isOnBackward)
@@ -81,5 +81,15 @@ public class ACMotorController : MonoBehaviour
             else
                 _torqueDirection = 0f;
         }
-    }    
+    }
+    
+    public void InvertForward()
+    {
+        IsOnForward = !IsOnForward;
+    }
+
+    public void InvertBackward()
+    {
+        IsOnBackward = !IsOnBackward;
+    }
 }
