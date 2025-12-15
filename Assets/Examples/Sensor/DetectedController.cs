@@ -3,12 +3,14 @@ using DG.Tweening;
 
 public class DetectedController : MonoBehaviour
 {
-
     public void OnDetected()
     {
-        transform.DOScale(Vector3.zero, 1f)
-            .SetDelay(1f)
-            .OnComplete(() => Destroy(gameObject));
+        transform.DOScale(Vector3.one, 1f)
+            .OnComplete(DestroySelf);
     }
 
+    public void DestroySelf()
+    {
+        Destroy(gameObject);
+    }
 }
