@@ -1,27 +1,30 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))] //<-- RequireComponent(typeof(반드시 있어야 하는 컴포넌트))
 public class CylinderController : MonoBehaviour
 {
-    //실린더의 전진 방향(로컬)
+    
+    //실린더의 전진 방향(로컬)    
     public Vector3 forward = Vector3.forward;
     //물리 강체
     public Rigidbody rod;
     //전후진시 가하는 힘.
     public float power = 100f;
 
-    private bool _isOnForward = false;
-    private bool _isOnBackward = false; 
-
+    private void Awake()
+    {
+        rod = GetComponent<Rigidbody>();
+        rod.useGravity = false;
+        rod.constraints = RigidbodyConstraints.FreezeRotation;
+    }
 
     public void OnForward()
     {
-        Debug.Log("전진");
         rod.AddRelativeForce(forward * power);
     }
 
     public void OnBackward()
     {
-        Debug.Log("후진");
         rod.AddRelativeForce(-forward * power);
     }
 }

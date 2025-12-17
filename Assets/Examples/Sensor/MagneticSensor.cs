@@ -13,7 +13,7 @@ public class MagneticSensor : MonoBehaviour
     //현재 감지 여부
     private bool _hasDetectedPrev = false;
     private bool _hasDetected = false;
-    public List<Collider> _detectedList;
+    public List<Collider> _detectedList;    
 
     private void Start()
     {
@@ -21,14 +21,21 @@ public class MagneticSensor : MonoBehaviour
         gameObject.layer = LayerMask.NameToLayer(layerName);
     }
 
-
     //콜라이더에 다른 콜라이더가 들어왔을 경우 호출됨.(IsTrigger 체크 되어 있어야 만 함.)
     private void OnTriggerEnter(Collider other)
     {
+        //Debug.Log($"Sensor Entered ->{other.gameObject.name}");
+        if (other.attachedRigidbody.isKinematic)
+            return;
+        
         _detectedList.Add(other);
-        _hasDetected = _detectedList.Count > 0;
+
+        _hasDetected = _detectedList.Count > 0;        
         if(_hasDetectedPrev != _hasDetected )
+        {
+            //Debug.Log("Enter Callback");
             onChangedDetected?.Invoke(_hasDetected);
+        }
 
         _hasDetectedPrev = _hasDetected;
     }
@@ -36,11 +43,15 @@ public class MagneticSensor : MonoBehaviour
     //콜라이더에 들어와 있던 다른 콜라이더가 나갔을 경우 호출됨.(IsTrigger 체크 되어 있어야 만 함.)
     private void OnTriggerExit(Collider other)
     {
+        //Debug.Log($"Sensor Exit -> {other.gameObject.name}");
         _detectedList.Remove(other);
         _hasDetected = _detectedList.Count > 0;
         
         if (_hasDetectedPrev != _hasDetected)
+        {
+            //Debug.Log("Exit Callback");
             onChangedDetected?.Invoke(_hasDetected);
+        }
 
         _hasDetectedPrev = _hasDetected;
     }

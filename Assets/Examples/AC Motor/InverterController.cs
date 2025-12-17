@@ -15,15 +15,19 @@ public class InverterController : MonoBehaviour
 
     [Header("인버터 파라미터(Settings)")]
     public RotateAxis axis = RotateAxis.YAxis;
+    [Delayed]
     public float maxFrequency = 60f;        //최대 주파수
+    [Delayed]
     public float maxRPM = 1800f;             //정격 회전수
+    [Delayed]
     public float accelTime = 1.0f;              //가속시간(0 -> MAX 도달하는 걸리는 시간)
+    [Delayed]
     public float decelTime = 1.0f;              //감속 시간(MAX -> 0 도달하는데 걸리는 시간)
 
     [Header("제어 입력(PLC Input)")]
     public bool STF = false;                    //정회전 신호
     public bool STR = false;                    //역회전 신호
-    [Range(0f, 60f)]
+    [Delayed]
     public float targetHz = 0.0f;              //지령 주파수(아날로그 입력)
 
     public UnityEvent<bool> onChangedSTF;
