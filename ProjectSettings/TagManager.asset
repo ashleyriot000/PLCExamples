@@ -8,6 +8,8 @@ TagManager:
   - Can
   - NoDeselect
   - Align
+  - Normal Product
+  - Defective Product
   layers:
   - Default
   - TransparentFX

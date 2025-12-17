@@ -10,9 +10,13 @@ public class ProductSpawner : MonoBehaviour
     public float startSpawnTime = 0f;
     //삼품 제조 시간 간격
     public float spawnInterval = 1f;
+    //상품 상태들(비워두면 적용안함)
+    public string[] tagList;
 
     //상품 제조 예정 시간
     private float _spawnTime = 0f;
+
+
 
 
     private void OnEnable()
@@ -28,7 +32,13 @@ public class ProductSpawner : MonoBehaviour
         //생산 위치 배열 수만큼 반복해서 생산한다.
         for(int i = 0; i < spawnPositions.Length; ++i)
         {
-            Instantiate(product, spawnPositions[i].position, spawnPositions[i].rotation);
+            GameObject newProduct = Instantiate(product, spawnPositions[i].position, spawnPositions[i].rotation);
+            //태그리스트가 1개 이상이면 
+            if(tagList.Length > 0)
+            {
+                //상품에 태그를 랜덤하게 부여한다. 최소값과 최대값(최대값의 -1) 사이의 값이 반환 = Random.Range(최소값, 최대값);
+                newProduct.tag = tagList[Random.Range(0, tagList.Length)];
+            }
         }
     }
 
