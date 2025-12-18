@@ -82,7 +82,7 @@ public class OpticalSensor : MonoBehaviour
                 return;
             }
 
-            hit.transform.gameObject.SendMessage("OnDetected");
+            //hit.transform.gameObject.SendMessage("OnDetected");
             
             HasDetected = true;
             _detectedPoint = hit.point;

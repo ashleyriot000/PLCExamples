@@ -38,7 +38,7 @@ public class RobotArmController : MonoBehaviour
     
     public void Pick(bool isEnter)
     {
-        Debug.Log($"Pick 호출됨 -> {isEnter}");
+        //Debug.Log($"Pick 호출됨 -> {isEnter}");
         //센서 영역 안에 들어올 때만 줏을 수 있도록 호출
         if (!isEnter)
             return;
