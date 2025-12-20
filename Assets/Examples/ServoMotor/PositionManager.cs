@@ -8,7 +8,9 @@ public class PositionManager : MonoBehaviour
     public class Position
     {
         //포지셔닝 데이터 하나를 들고 있음.
-        public int data;
+        public int axis0;
+        public int axis1;
+        public int axis2;
         //연결되어 있는 UI
         private PositionData uiData;
 
@@ -16,9 +18,11 @@ public class PositionManager : MonoBehaviour
         public PositionData GetData => uiData;
 
         //생성자 
-        public Position(int data)
+        public Position(int axis0, int axis1, int axis2)
         {
-            this.data = data;
+            this.axis0 = axis0;
+            this.axis1 = axis1;
+            this.axis2 = axis2;
         }
 
         //UI를 연결시키는 함수
@@ -32,19 +36,21 @@ public class PositionManager : MonoBehaviour
     public PositionData origin;
     //포지셔닝 데이터 모아두는 리스트
     public List<Position> positionList = new List<Position>();
-    public ServoActuator actuator;
+    public ServoActuator actuator_Axis0;
+    public ServoActuator actuator_Axis1;
+    public ServoActuator actuator_Axis2;
 
     //리스트에 추가하는 함수
-    public void AddData(int data, bool needSave)
+    public void AddData(int axis0, int axis1, int axis2, bool needSave)
     {
         //포지션 데이터 생성
-        Position position = new Position(data);
+        Position position = new Position(axis0, axis1, axis2);
         //리스트에 추가.
         positionList.Add(position);
         //새로운 UI 만들고
         PositionData uiData = Instantiate(origin, transform);
         //데이터 표시
-        uiData.Init(positionList.Count, data);
+        uiData.Init(positionList.Count, axis0, axis1, axis2);
         uiData.gameObject.SetActive(true);
         //UI 연결
         position.ConnectUI(uiData);
@@ -54,7 +60,7 @@ public class PositionManager : MonoBehaviour
 
     public void AddData()
     {
-        AddData(actuator.GetCurrentPulse, true);
+        AddData(actuator_Axis0.GetCurrentPulse, actuator_Axis1.GetCurrentPulse, actuator_Axis2.GetCurrentPulse, true);
     }
 
     //리스트에서 데이터 제거하는 함수
@@ -102,7 +108,7 @@ public class PositionManager : MonoBehaviour
         {
             //','를 기준으로 문자열들을 모두 잘라내 배열에 모아둠.
             string[] datas = csvDatas[i].Split(',');
-            AddData(int.Parse(datas[1]), false);
+            AddData(int.Parse(datas[1]), int.Parse(datas[2]), int.Parse(datas[3]), false);
         }
     }
 
@@ -113,10 +119,13 @@ public class PositionManager : MonoBehaviour
         string path = Path.Combine(Application.dataPath, "PositionData.csv");
 
         string[] csvDatas = new string[positionList.Count + 1];
-        csvDatas[0] = "id,Position";
+        csvDatas[0] = "Position ID, Axis0, Axis1, Axis2";
         for(int i = 0; i < positionList.Count; ++i)
         {
-            csvDatas[i + 1] = i.ToString()+ ',' + positionList[i].data.ToString();
+            csvDatas[i + 1] = i.ToString() + ',' +
+                positionList[i].axis0.ToString() + ',' +
+                positionList[i].axis1.ToString() + ',' +
+                positionList[i].axis2.ToString();
         }
 
         //경로에 파일 저장하기
