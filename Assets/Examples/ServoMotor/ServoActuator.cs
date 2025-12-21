@@ -66,6 +66,12 @@ public class ServoActuator : MonoBehaviour
 
     //펄스값이 변경되면 그값을 받을 함수들을 넣을 델리게이트
     public UnityEvent<int> onChangedPulse;
+    //준비 상태값이 변경되면 그 값을 받을 함수들을 넣을 델리게이트
+    public UnityEvent<bool> onChangedReady;
+    //에러 상태값이 변경되면 그 값을 받을 함수들을 넣을 델리게이트
+    public UnityEvent<bool> onChangedError;
+    //명령 수행 상태값이 변경되면 그 값을 받을 함수들을 넣을 델리게이트
+    public UnityEvent<bool> onChangedBusy;
 
     //현재 펄스값에 대한 프로퍼티
     public int GetCurrentPulse
@@ -80,7 +86,7 @@ public class ServoActuator : MonoBehaviour
             onChangedPulse?.Invoke(value);
         }
     }
-    
+
 
     [Header("센서 입력")]
     public bool isOnLimitSensorPositive = false;      //상한 리미트
@@ -109,6 +115,45 @@ public class ServoActuator : MonoBehaviour
     public bool InPosition = false; //명령 수행 완료 여부
     public bool IsError = false; //에러 경고
     public bool OPR_Complete = false;   //원점을 찾았다 여부
+
+    public bool Ready
+    {
+        get => IsReady;
+        set
+        {
+            if (IsReady == value)
+                return;
+
+            IsReady = value;
+            onChangedReady?.Invoke(value);
+        }
+    }
+
+    public bool Error
+    {
+        get => IsError;
+        set
+        {
+            if (IsError == value)
+                return;
+
+            IsError = value;
+            onChangedError?.Invoke(value);
+        }
+    }
+
+    public bool Busy
+    {
+        get => IsBusy;
+        set
+        {
+            if (IsBusy == value)
+                return;
+
+            IsBusy = value;
+            onChangedBusy?.Invoke(value);
+        }
+    }
 
 
     //내부에서 처리하기 용이하게 하기 위한 
@@ -224,7 +269,6 @@ public class ServoActuator : MonoBehaviour
             }
 
             //조인트에 목표 위치값을 입력
-            //Debug.Log(new Vector3(0, 0, mmValue / 1000.0f));
             _joint.targetPosition = new Vector3(0, 0, mmValue / 1000.0f);
         }
         else   //작동방식이 회전일 경우
@@ -253,6 +297,7 @@ public class ServoActuator : MonoBehaviour
         OPR_Complete = false;
         InPosition = false;
         _homingHitDog = false;
+        Busy = true;
     }
 
     //원점 복귀 완료
@@ -268,6 +313,7 @@ public class ServoActuator : MonoBehaviour
         OPR_Complete = true;
         _cmd_StartOPR = false;
         _currentState = ActuatorState.Idle;
+        Busy = false;
     }
 
     //외부 제어 함수
@@ -276,10 +322,10 @@ public class ServoActuator : MonoBehaviour
         _cmd_ServoON = isON;
         if(!isON)
         {
-            IsReady = false;
-            IsBusy = false;
+            Ready = false;
+            Busy = false;
             InPosition = false;
-            IsError = false;
+            Error = false;
             OPR_Complete = false;
             _cmd_ServoON = false; 
             _cmd_StartPos = false;
@@ -298,6 +344,7 @@ public class ServoActuator : MonoBehaviour
     {
         _cmd_TargetPulse = pulse;
         _cmd_StartPos = true;
+        Busy = true;
     }
     public void Cmd_JogForward(bool isOn) => _cmd_JogFwd = isOn;
     public void Cmd_JogReverse(bool isOn) => _cmd_JogRev= isOn;
@@ -305,10 +352,10 @@ public class ServoActuator : MonoBehaviour
     public void Cmd_Reset()
     {
         //에러 상태이면
-        if(IsError)
+        if(Error)
         {
             //에러를 없애고
-            IsError = false;
+            Error = false;
             //다시 대기모드로 전환해라
             _currentState = ActuatorState.Idle;
 
@@ -328,7 +375,7 @@ public class ServoActuator : MonoBehaviour
 
         if (!_cmd_ServoON && !IsError)
         {
-            IsReady = false;
+            Ready = false;
             _currentVelocity_Unit = 0f;
             //모터에 토크를 0으로 없앰
             SetJointForce(0);
@@ -345,7 +392,7 @@ public class ServoActuator : MonoBehaviour
             return;
         }
 
-        IsReady = true;
+        Ready = true;
         //모터에 강한 토크를 줘서 고정
         SetJointForce(100000);
 
@@ -357,23 +404,29 @@ public class ServoActuator : MonoBehaviour
         switch (_currentState)
         {
             case ActuatorState.Idle:
-                if (_cmd_JogFwd || _cmd_JogRev) _currentState = ActuatorState.Jogging;
-                else if (_cmd_StartPos) _currentState = ActuatorState.Positioning;
-                else if(isRisingEdge_OPR)
+                if (_cmd_JogFwd || _cmd_JogRev)
                 {
-                    if(OPR_Complete)
+                    _currentState = ActuatorState.Jogging;
+                    Busy = true;
+                }
+                else if (_cmd_StartPos)
+                {
+                    _currentState = ActuatorState.Positioning;
+                    Busy = true;
+                }
+                else if (isRisingEdge_OPR)
+                {
+                    if (OPR_Complete)
                     {
                         //이미 원점은 찾았고, 원점 위치로 고속 이동.
-                        _cmd_TargetPulse = 0;
-                        _cmd_StartPos = true;
-                        _cmd_StartOPR = false;
+                        Cmd_Positioning(0);
                     }
                     else
                     {
                         SetupHoming();
                     }
-                }
-                    break;
+                }                    
+                break;
             case ActuatorState.Jogging:         //수동 운전
                 //수동 전진 On일 때
                 if (_cmd_JogFwd)
@@ -401,6 +454,14 @@ public class ServoActuator : MonoBehaviour
                 if(Mathf.Abs(distance) <= inPosWidth)
                 {
                     targetVelocity = 0f;
+
+                    //강제로 위치와 속도를 고정(떨림 방지)
+                    _currentVelocity_Unit = 0f;
+                    _internalTarget_Unit = targetPos;
+                    ApplyPhysics(_internalTarget_Unit);
+
+
+                    Busy = false;
                     InPosition = true;
                     _cmd_StartPos = false;
                     _currentState = ActuatorState.Idle;
@@ -408,16 +469,28 @@ public class ServoActuator : MonoBehaviour
                 else
                 {
                     InPosition = false;
-                    targetVelocity = Mathf.Sign(distance) * maxSpeed;
-                    //제동 거리 예측
-                    float stopDist = (Mathf.Abs(_currentVelocity_Unit) * accelTime * 0.001f);
-                    //남은 거리가 제동 거리보다 적으면
-                    if (Mathf.Abs(distance) < stopDist)
+                    if(Mathf.Abs(distance) < 2.0f)
                     {
-                        //비례 제어로 부드럽게 감속하게 함.
-                        targetVelocity = distance * 2.0f;
+                        targetVelocity = distance > 1f ?
+                            Mathf.Sign(distance) * 10f :
+                            Mathf.Sign(distance);
                     }
-                }                    
+                    else
+                    {
+                        
+                        //제동 거리 예측
+                        float stopDist = (Mathf.Abs(_currentVelocity_Unit) * accelTime * 0.001f);
+                        //제동 거리보다 남은 거리가 짧으면 속도 대폭 감소
+                        if (Mathf.Abs(distance) < stopDist)
+                        {
+                            targetVelocity = distance * 2.0f;
+                        }
+                        else
+                        {
+                            targetVelocity = Mathf.Sign(distance) * maxSpeed;
+                        }
+                    }   
+                }
                 break;
             case ActuatorState.Homing_Search:
                 //원점을 모르는 상태 -> 찾아다녀야 함.
@@ -451,6 +524,7 @@ public class ServoActuator : MonoBehaviour
                 if(!isOnProximityDOG && _homingHitDog)
                 {
                     CompletedHoming();
+                    targetVelocity = 0f;
                 }
                 break;
             case ActuatorState.Error:
@@ -473,7 +547,7 @@ public class ServoActuator : MonoBehaviour
             if(!isHoming)
             {
                 //에러로 판단
-                IsError = true;
+                Error = true;
                 _currentState = ActuatorState.Error;
             }
         }
@@ -487,7 +561,7 @@ public class ServoActuator : MonoBehaviour
             if (!isHoming)
             {
                 //에러로 판단
-                IsError = true;
+                Error = true;
                 _currentState = ActuatorState.Error;
             }
         }
@@ -498,6 +572,7 @@ public class ServoActuator : MonoBehaviour
         float accelRate = referenceSpeed / (accelTime * 0.001f); //초당 속도 변화량
         //현재 초당 이동 속도
         _currentVelocity_Unit = Mathf.MoveTowards(_currentVelocity_Unit, targetVelocity, accelRate * Time.fixedDeltaTime);
+        
         //위치 적분
         _internalTarget_Unit += _currentVelocity_Unit * Time.fixedDeltaTime;
         //물리적인 위치로 보내기        
