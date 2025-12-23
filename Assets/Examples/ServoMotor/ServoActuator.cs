@@ -342,13 +342,34 @@ public class ServoActuator : MonoBehaviour
     }
     public void Cmd_Positioning(int pulse)
     {
+        if (!IsReady || IsBusy)
+            return;
+
         _cmd_TargetPulse = pulse;
         _cmd_StartPos = true;
         Busy = true;
     }
-    public void Cmd_JogForward(bool isOn) => _cmd_JogFwd = isOn;
-    public void Cmd_JogReverse(bool isOn) => _cmd_JogRev= isOn;
-    public void Cmd_Homing() => _cmd_StartOPR = true;
+    public void Cmd_JogForward(bool isOn)
+    {
+        if (!IsReady || IsBusy)
+            return;
+
+        _cmd_JogFwd = isOn;
+    }
+    public void Cmd_JogReverse(bool isOn)
+    {
+        if (!IsReady || IsBusy)
+            return;
+
+        _cmd_JogRev = isOn;
+    }
+    public void Cmd_Homing()
+    {
+        if (!IsReady || IsBusy)
+            return;
+        
+        _cmd_StartOPR = true;
+    }
     public void Cmd_Reset()
     {
         //에러 상태이면
@@ -407,7 +428,6 @@ public class ServoActuator : MonoBehaviour
                 if (_cmd_JogFwd || _cmd_JogRev)
                 {
                     _currentState = ActuatorState.Jogging;
-                    Busy = true;
                 }
                 else if (_cmd_StartPos)
                 {
